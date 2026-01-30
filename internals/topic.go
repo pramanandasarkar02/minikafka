@@ -7,8 +7,10 @@ import (
 
 type Topic struct {
 	id          int64
-	records     map[int64]Record
-	
+	// producerId/consumerId -> record 
+	records     map[int64][]Record
+	// producerId/consumerId -> last record index
+	lastRecordOffsets map[int64]int64
 	producerIds []int64
 	consumerIds []int64
 }
@@ -23,7 +25,8 @@ const (
 func NewTopic(id int64) *Topic {
 	return &Topic{
 		id:          id,
-		records:     make(map[int64]Record),
+		records:     make(map[int64][]Record),
+		lastRecordOffsets: map[int64]int64{},
 		producerIds: make([]int64, 0),
 		consumerIds: make([]int64, 0),
 	}
@@ -53,26 +56,31 @@ func (t *Topic) Unsubscribe(id int64, ut UserType) {
 
 }
 
-func (t *Topic) InsertRecord(producerId int64, record *Record) error {
+func (t *Topic) InsertRecord(producerId int64, record Record) error {
 	if !findInTheList(t.producerIds, producerId) {
 		return errors.New("you are not authenticate to insert data")
 	}
-	t.records[record.offset] = *record
+
+	// set record offset 
+	
+	record.SetOffset(t.lastRecordOffsets[producerId])
+
+	t.records[producerId] = append(t.records[producerId], record)
+	t.lastRecordOffsets[producerId] += RECORD_DATA_SIZE
 	return nil
-
 }
 
-func (t *Topic) RetriveRecord(offset int64, consumerId int64)([]byte, error) {
-	if !findInTheList(t.consumerIds, consumerId) {
-		return []byte{}, errors.New("you are not authenticate to insert data")
-	}
-	if record, ok := t.records[offset]; ok{
-		return record.GetData(), nil
-	} else{
-		return []byte{}, nil
-	}
+// func (t *Topic) RetriveRecord(offset int64, consumerId int64)([]byte, error) {
+// 	if !findInTheList(t.consumerIds, consumerId) {
+// 		return []byte{}, errors.New("you are not authenticate to insert data")
+// 	}
+// 	if record, ok := t.records[consumerId]; ok{
+// 		return record., nil
+// 	} else{
+// 		return []byte{}, nil
+// 	}
 
-}
+// }
 func removeFromList(list []int64, val int64) []int64 {
 	var res []int64
 	for _, value := range list {
@@ -100,9 +108,15 @@ func (t *Topic)PrintTopic(){
 	fmt.Printf("Topic: #%d\n", t.id)
 	
 	fmt.Printf("\tRecords: (%d)\n", len(t.records))
-	fmt.Printf("\t\t")
-	for _ , rec := range t.records{
-		fmt.Printf("%v, ", rec.offset)
+	
+	for producerId , records := range t.records{
+		fmt.Printf("\t\t")
+		fmt.Printf("\tProducer: #%d (%d)\n\t\t\t\t", producerId, len(records))
+
+		for _, rec := range records{
+			fmt.Printf("%v, ", rec.GetOffset())
+		}
+		fmt.Println()
 	}
 	fmt.Println()
 	
@@ -123,4 +137,24 @@ func (t *Topic)PrintTopic(){
 
 	fmt.Println("------------------------------------------")
 
+}
+
+
+
+
+func SplitIntoRecords(data []byte) []Record {
+
+	records := make([]Record, 0)
+	totalDataLen := int64(len(data))
+
+	for i := int64(0); i < totalDataLen; i += RECORD_DATA_SIZE {
+
+		end := i + RECORD_DATA_SIZE
+		if end > totalDataLen {
+			end = totalDataLen
+		}
+		chunk := data[i:end]
+		records = append(records, *NewRecord(i, chunk))
+	}
+	return records
 }

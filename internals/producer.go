@@ -31,9 +31,11 @@ func (p *Producer) InsertData(topic *Topic, data []byte) {
 	// 	broker.InsertData(TOPIC_ID, record)
 	// }
 
+	// change record offset
+
 	// save record to the producers
 	for _, record := range records {
-		topic.InsertRecord(p.id, &record)
+		topic.InsertRecord(p.id, record)
 	}
 
 }

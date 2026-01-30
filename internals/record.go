@@ -14,24 +14,15 @@ func NewRecord(offset int64, data []byte) *Record {
 	}
 }
 
-func SplitIntoRecords(data []byte) []Record {
-
-	records := make([]Record, 0)
-	totalDataLen := int64(len(data))
-
-	for i := int64(0); i < totalDataLen; i += RECORD_DATA_SIZE {
-
-		end := i + RECORD_DATA_SIZE
-		if end > totalDataLen {
-			end = totalDataLen
-		}
-		chunk := data[i:end]
-		records = append(records, *NewRecord(i, chunk))
-	}
-	return records
+func (r *Record)SetOffset(off int64){
+	r.offset = off
 }
-
-
-func (r *Record)GetData()[]byte{
+func (r *Record)GetOffset() int64{
+	return r.offset
+}
+func (r *Record)SetData(data []byte){
+	r.data = data
+}
+func (r *Record)GetData() []byte {
 	return  r.data
 }

@@ -30,9 +30,9 @@ func Simulation() {
 	broker.PrintBroker()
 
 	producer1.InsertData(topic1, []byte("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."))
-	producer2.InsertData(topic2, []byte("Hello world"))
+	producer3.InsertData(topic2, []byte("Hello world"))
 	producer1.InsertData(topic2, []byte("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."))
-	producer2.InsertData(topic2, []byte("Hello world"))
+	producer3.InsertData(topic2, []byte("Hello world"))
 
 	broker.PrintBroker()
 	
