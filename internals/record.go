@@ -30,3 +30,8 @@ func SplitIntoRecords(data []byte) []Record {
 	}
 	return records
 }
+
+
+func (r *Record)GetData()[]byte{
+	return  r.data
+}

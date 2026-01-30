@@ -1,7 +1,7 @@
 package internals
 
 var PRODUCER_ID int64 = 0
-var TOPIC_ID int64 = 0
+
 
 type Producer struct {
 	id int64
@@ -14,21 +14,26 @@ func NewProducer(broker *Broker) *Producer {
 	}
 }
 
-func (p *Producer) InsertData(broker *Broker, data []byte) {
+func (p *Producer) InsertData(topic *Topic, data []byte) {
 	//  split into records
 
 	records := SplitIntoRecords(data)
 
-	// for _, record := range records{
-	// 	fmt.Println(record.offset)
+	// // for _, record := range records{
+	// // 	fmt.Println(record.offset)
+	// // }
+
+	// // send the records to the subscribed brokers
+	// TOPIC_ID += 1
+	// broker.AddNewTopic(p.id, TOPIC_ID, NewTopic(TOPIC_ID))
+
+	// for _, record := range records {
+	// 	broker.InsertData(TOPIC_ID, record)
 	// }
 
-	// send the records to the subscribed brokers
-	TOPIC_ID += 1
-	broker.AddNewTopic(p.id, TOPIC_ID, NewTopic(TOPIC_ID))
-
+	// save record to the producers
 	for _, record := range records {
-		broker.InsertData(TOPIC_ID, record)
+		topic.InsertRecord(p.id, &record)
 	}
 
 }
