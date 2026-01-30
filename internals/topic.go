@@ -1,22 +1,24 @@
 package internals
 
+type Topic struct {
+	id      int64
+	records []Record
 
-
-type Topic struct{
-
+	subscribedProducerIds []int64
+	subscribedConsumerIds []int64
 }
 
-func NewTopic() *Topic{
-	return &Topic{}
+func NewTopic(id int64) *Topic {
+	return &Topic{
+		id:      id,
+		records: make([]Record, 0),
+	}
 }
 
-
-
-func (t *Topic)InsertRecord(record *Record){
-
+func (t *Topic) InsertRecord(record *Record) {
+	t.records = append(t.records, *record)
 }
 
-
-func (t* Topic)RetriveRecord(){
+func (t *Topic) RetriveRecord() {
 
 }

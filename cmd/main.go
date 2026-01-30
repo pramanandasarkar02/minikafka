@@ -2,7 +2,6 @@ package main
 
 import "github.com/pramanandasarkar02/minikafka/internals"
 
-
-func main(){
+func main() {
 	internals.Simulation()
 }

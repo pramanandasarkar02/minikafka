@@ -1,6 +1,4 @@
 package internals
 
-
-type BrokerManager struct{
-	
+type BrokerManager struct {
 }

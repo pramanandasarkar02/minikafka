@@ -1,29 +1,34 @@
 package internals
 
-import "fmt"
+var PRODUCER_ID int64 = 0
+var TOPIC_ID int64 = 0
 
-
-type Producer struct{
+type Producer struct {
 	id int64
-	data []byte 
 }
 
-func NewProducer(id int64) *Producer{
+func NewProducer(broker *Broker) *Producer {
+	PRODUCER_ID += 1
 	return &Producer{
-		id: id,
+		id: PRODUCER_ID,
 	}
 }
 
-func (p *Producer)InsertData(data []byte){
-	//  split into records 
+func (p *Producer) InsertData(broker *Broker, data []byte) {
+	//  split into records
 
 	records := SplitIntoRecords(data)
 
-	for _, record := range records{
-		fmt.Println(record.offset)
-	}
-	// 
+	// for _, record := range records{
+	// 	fmt.Println(record.offset)
+	// }
 
+	// send the records to the subscribed brokers
+	TOPIC_ID += 1
+	broker.AddNewTopic(p.id, TOPIC_ID, NewTopic(TOPIC_ID))
+
+	for _, record := range records {
+		broker.InsertData(TOPIC_ID, record)
+	}
 
 }
-
