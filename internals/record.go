@@ -26,3 +26,11 @@ func (r *Record)SetData(data []byte){
 func (r *Record)GetData() []byte {
 	return  r.data
 }
+
+
+
+type RecordNotification struct{
+	TopicId int64
+	ProducerId int64
+	Offset int64
+}

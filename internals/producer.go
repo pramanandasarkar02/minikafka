@@ -14,6 +14,9 @@ func NewProducer(broker *Broker) *Producer {
 	}
 }
 
+
+
+
 func (p *Producer) InsertData(topic *Topic, data []byte) {
 	//  split into records
 
@@ -22,14 +25,6 @@ func (p *Producer) InsertData(topic *Topic, data []byte) {
 	// // for _, record := range records{
 	// // 	fmt.Println(record.offset)
 	// // }
-
-	// // send the records to the subscribed brokers
-	// TOPIC_ID += 1
-	// broker.AddNewTopic(p.id, TOPIC_ID, NewTopic(TOPIC_ID))
-
-	// for _, record := range records {
-	// 	broker.InsertData(TOPIC_ID, record)
-	// }
 
 	// change record offset
 

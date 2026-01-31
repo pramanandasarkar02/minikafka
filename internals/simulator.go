@@ -1,6 +1,7 @@
 package internals
 
 var TOPIC_ID int64 = 0
+var CONSUMER_ID int64 = 0
 
 func Simulation() {
 	broker := NewBroker()
@@ -8,6 +9,7 @@ func Simulation() {
 	producer1 := NewProducer(broker)
 	producer2 := NewProducer(broker)
 	producer3 := NewProducer(broker)
+
 
 	TOPIC_ID += 1
 	topic1 := NewTopic(TOPIC_ID)
@@ -22,10 +24,18 @@ func Simulation() {
 	broker.PrintBroker()
 
 	topic1.Subscribe(producer1.id, ProducerType)
-	topic1.Subscribe(producer3.id, ConsumerType)
+	topic1.Subscribe(producer2.id, ProducerType)
 	topic2.Subscribe(producer1.id, ProducerType)
-	topic2.Subscribe(producer2.id, ConsumerType)
 	topic2.Subscribe(producer3.id, ProducerType)
+
+	CONSUMER_ID += 1
+	ch1 := topic1.Subscribe(CONSUMER_ID, ConsumerType)
+	consumer1 := NewConsumer(CONSUMER_ID, ch1)
+	
+	CONSUMER_ID += 1
+	ch2 := topic2.Subscribe(CONSUMER_ID, ConsumerType)
+	consumer2 := NewConsumer(CONSUMER_ID, ch2)
+
 
 	broker.PrintBroker()
 
@@ -33,7 +43,24 @@ func Simulation() {
 	producer3.InsertData(topic2, []byte("Hello world"))
 	producer1.InsertData(topic2, []byte("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."))
 	producer3.InsertData(topic2, []byte("Hello world"))
+	producer3.InsertData(topic2, []byte("Hello world"))
+	producer3.InsertData(topic2, []byte("Hello world"))
+	producer3.InsertData(topic2, []byte("Hello world"))
+	producer3.InsertData(topic2, []byte("Hello world"))
 
 	broker.PrintBroker()
+
+	go consumer1.RetriveData(topic1)
+	go consumer2.RetriveData(topic2)
+
+
+	broker.PrintBroker()
+
+
+
+
+	select {}
+
+
 	
 }

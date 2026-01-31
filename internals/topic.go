@@ -7,12 +7,16 @@ import (
 
 type Topic struct {
 	id          int64
-	// producerId/consumerId -> record 
+	// producerId -> record 				// change it to the another unique key value pair
 	records     map[int64][]Record
-	// producerId/consumerId -> last record index
+	// producerId -> last record index
 	lastRecordOffsets map[int64]int64
 	producerIds []int64
 	consumerIds []int64
+
+
+	// consumerId -> notification chan
+	consumerChans map[int64]chan RecordNotification
 }
 
 type UserType int
@@ -29,6 +33,7 @@ func NewTopic(id int64) *Topic {
 		lastRecordOffsets: map[int64]int64{},
 		producerIds: make([]int64, 0),
 		consumerIds: make([]int64, 0),
+		consumerChans: make(map[int64]chan RecordNotification),
 	}
 }
 func (t *Topic)GetId()int64{
@@ -36,14 +41,17 @@ func (t *Topic)GetId()int64{
 }
 
 
-func (t *Topic) Subscribe(id int64, ut UserType) {
+func (t *Topic) Subscribe(id int64, ut UserType) chan RecordNotification{
 	switch ut {
 	case ProducerType:
 		t.producerIds = append(t.producerIds, id)
+		return nil
 	case ConsumerType:
 		t.consumerIds = append(t.consumerIds, id)
+		ch := make(chan RecordNotification, 10)
+		return ch
 	}
-
+	return nil
 }
 
 func (t *Topic) Unsubscribe(id int64, ut UserType) {
@@ -56,6 +64,8 @@ func (t *Topic) Unsubscribe(id int64, ut UserType) {
 
 }
 
+
+
 func (t *Topic) InsertRecord(producerId int64, record Record) error {
 	if !findInTheList(t.producerIds, producerId) {
 		return errors.New("you are not authenticate to insert data")
@@ -67,20 +77,45 @@ func (t *Topic) InsertRecord(producerId int64, record Record) error {
 
 	t.records[producerId] = append(t.records[producerId], record)
 	t.lastRecordOffsets[producerId] += RECORD_DATA_SIZE
+
+
+	// notify consumers
+	t.notifyConsumers(producerId, record.GetOffset())
+
 	return nil
 }
 
-// func (t *Topic) RetriveRecord(offset int64, consumerId int64)([]byte, error) {
-// 	if !findInTheList(t.consumerIds, consumerId) {
-// 		return []byte{}, errors.New("you are not authenticate to insert data")
-// 	}
-// 	if record, ok := t.records[consumerId]; ok{
-// 		return record., nil
-// 	} else{
-// 		return []byte{}, nil
-// 	}
 
-// }
+func(t * Topic) notifyConsumers(producerId, offset int64){
+	event := RecordNotification{
+		TopicId: t.id,
+		ProducerId: producerId,
+		Offset: offset,
+	}
+
+	for cid, ch := range t.consumerChans {
+		select{
+		case ch <- event:
+		default:
+			fmt.Printf("consumer %d notification channel full\n", cid)
+		}
+	}
+}
+
+
+func (t *Topic) RetriveRecord(consumerId int64, producerId int64, offset int64)([]byte, error) {
+	if !findInTheList(t.consumerIds, consumerId) {
+		return []byte{}, errors.New("you are not authenticate to insert data")
+	}
+
+	records := t.records[producerId]
+
+	return records[offset].GetData(), nil
+
+
+
+}
+
 func removeFromList(list []int64, val int64) []int64 {
 	var res []int64
 	for _, value := range list {
