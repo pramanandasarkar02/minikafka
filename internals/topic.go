@@ -1,7 +1,7 @@
 package internals
 
 import (
-	"errors"
+	// "errors"
 	"fmt"
 )
 
@@ -18,13 +18,6 @@ type Topic struct {
 	// consumerId -> notification chan
 	consumerChans map[int64]chan RecordNotification
 }
-
-type UserType int
-
-const (
-	ProducerType UserType = iota
-	ConsumerType
-)
 
 func NewTopic(id int64) *Topic {
 	return &Topic{
@@ -43,98 +36,47 @@ func (t *Topic)GetId()int64{
 
 func (t *Topic) Subscribe(id int64, ut UserType) chan RecordNotification{
 	switch ut {
-	case ProducerType:
+	case PRODUCER:
 		t.producerIds = append(t.producerIds, id)
 		return nil
-	case ConsumerType:
+	case CONSUMER:
 		t.consumerIds = append(t.consumerIds, id)
 		ch := make(chan RecordNotification, 10)
+		t.consumerChans[id] = ch 
 		return ch
 	}
 	return nil
 }
 
-func (t *Topic) Unsubscribe(id int64, ut UserType) {
-	switch ut {
-	case ProducerType:
-		removeFromList(t.producerIds, id)
-	case ConsumerType:
-		removeFromList(t.consumerIds, id)
-	}
-
-}
 
 
 
 func (t *Topic) InsertRecord(producerId int64, record Record) error {
-	if !findInTheList(t.producerIds, producerId) {
-		return errors.New("you are not authenticate to insert data")
-	}
+	// if !t.producerIds[producerId] {
+	// 	return errors.New("you are not authenticate to insert data")
+	// }
 
 	// set record offset 
-	
-	record.SetOffset(t.lastRecordOffsets[producerId])
-
+	index := int64(len(t.records[producerId]))
 	t.records[producerId] = append(t.records[producerId], record)
-	t.lastRecordOffsets[producerId] += RECORD_DATA_SIZE
-
-
-	// notify consumers
-	t.notifyConsumers(producerId, record.GetOffset())
+	
+	for _, ch := range t.consumerChans{
+		ch <- RecordNotification{
+			TopicId: t.id,
+			ProducerId: producerId,
+			Index: index,
+		}
+	}
 
 	return nil
 }
 
 
-func(t * Topic) notifyConsumers(producerId, offset int64){
-	event := RecordNotification{
-		TopicId: t.id,
-		ProducerId: producerId,
-		Offset: offset,
-	}
 
-	for cid, ch := range t.consumerChans {
-		select{
-		case ch <- event:
-		default:
-			fmt.Printf("consumer %d notification channel full\n", cid)
-		}
-	}
+
+func (t *Topic) RetrieveRecord(pid int64, idx int64) ([]byte, error) {
+	return t.records[pid][idx].data, nil
 }
-
-
-func (t *Topic) RetriveRecord(consumerId int64, producerId int64, offset int64)([]byte, error) {
-	if !findInTheList(t.consumerIds, consumerId) {
-		return []byte{}, errors.New("you are not authenticate to insert data")
-	}
-
-	records := t.records[producerId]
-
-	return records[offset].GetData(), nil
-
-
-
-}
-
-func removeFromList(list []int64, val int64) []int64 {
-	var res []int64
-	for _, value := range list {
-		if val != value {
-			res = append(res, value)
-		}
-	}
-	return res
-}
-
-func findInTheList(list []int64, val int64) bool {
-	for _, item := range list {
-		if item == val {
-			return true
-		}
-	}
-	return false
-}
-
 
 func (t *Topic)PrintTopic(){
 
@@ -147,10 +89,6 @@ func (t *Topic)PrintTopic(){
 	for producerId , records := range t.records{
 		fmt.Printf("\t\t")
 		fmt.Printf("\tProducer: #%d (%d)\n\t\t\t\t", producerId, len(records))
-
-		for _, rec := range records{
-			fmt.Printf("%v, ", rec.GetOffset())
-		}
 		fmt.Println()
 	}
 	fmt.Println()
@@ -177,19 +115,3 @@ func (t *Topic)PrintTopic(){
 
 
 
-func SplitIntoRecords(data []byte) []Record {
-
-	records := make([]Record, 0)
-	totalDataLen := int64(len(data))
-
-	for i := int64(0); i < totalDataLen; i += RECORD_DATA_SIZE {
-
-		end := i + RECORD_DATA_SIZE
-		if end > totalDataLen {
-			end = totalDataLen
-		}
-		chunk := data[i:end]
-		records = append(records, *NewRecord(i, chunk))
-	}
-	return records
-}

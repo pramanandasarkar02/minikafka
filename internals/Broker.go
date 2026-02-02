@@ -29,8 +29,5 @@ func (b *Broker) PrintBroker() {
 	for _, topic := range b.topics {
 		topic.PrintTopic()
 	}
-
 	fmt.Println("==========================================")
-
-	
 }
