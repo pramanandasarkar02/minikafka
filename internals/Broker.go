@@ -22,7 +22,6 @@ func (b *Broker) AddNewTopic(topic *Topic) {
 	b.topics[topic.id] = topic
 }
 
-
 func (b *Broker) PrintBroker() {
 	fmt.Println("==========================================")
 	fmt.Printf("Broker details: #%d\n", b.id)

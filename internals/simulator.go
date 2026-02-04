@@ -50,7 +50,6 @@ func Simulation() {
 	producer3.InsertData(topic2, []byte("Good Afternoon"))
 	producer3.InsertData(topic2, []byte("Good Night"))
 
-
 	broker.PrintBroker()
 
 	time.Sleep(200 * time.Millisecond)

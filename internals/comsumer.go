@@ -2,23 +2,19 @@ package internals
 
 import "fmt"
 
-
-
 type Consumer struct {
-	id int64
+	id               int64
 	notificationChan chan RecordNotification
 }
 
-func NewConsumer(id int64, notificationChan chan RecordNotification)*Consumer{
+func NewConsumer(id int64, notificationChan chan RecordNotification) *Consumer {
 	return &Consumer{
-		id: id,
+		id:               id,
 		notificationChan: notificationChan,
 	}
 }
 
-
-
-func (c * Consumer) Consume(topic *Topic){
+func (c *Consumer) Consume(topic *Topic) {
 	for {
 		select {
 		case evt := <-c.notificationChan:
@@ -28,14 +24,10 @@ func (c * Consumer) Consume(topic *Topic){
 				c.id, evt.TopicId, evt.ProducerId, string(data),
 			)
 		default:
-			return 
+			return
 		}
 	}
 }
-
-
-
-
 
 // func (c *Consumer)RetriveData()(*Record){
 

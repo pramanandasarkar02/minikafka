@@ -10,9 +10,6 @@ func NewProducer(producerId int64, broker *Broker) *Producer {
 	}
 }
 
-
-
-
 func (p *Producer) InsertData(topic *Topic, data []byte) {
 	records := SplitIntoRecords(data)
 	for _, record := range records {

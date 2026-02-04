@@ -1,5 +1,10 @@
 .vscode 
 
+go.sum 
+
+uploads/
+*.mp4
+
 
 
 
