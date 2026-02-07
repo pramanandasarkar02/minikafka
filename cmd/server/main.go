@@ -32,7 +32,15 @@ type WeatherInfo struct {
 	Timestamp   time.Time `json:"timestamp"`
 }
 
+// type RequestType struct {
+// 	ProducerId int64 `json:"producerId"`
+// 	consumerId int64 `json:"consumerId"`
+// 	payload []byte `json:"payload"`
+// }
+
+
 var DB *sql.DB
+var kafkaProducer sarama
 
 func initDB() {
 	var err error
@@ -71,15 +79,33 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Println(wf)
 
-		_, err = DB.Exec(
-			`INSERT INTO weather (lon, lat, temperature, presure, timestamp)
-     VALUES (?, ?, ?, ?, ?)`,
-			wf.Lon, wf.Lat, wf.Temperature, wf.Pressure, wf.Timestamp,
-		)
-		if err != nil {
+
+		//---------------- No DB Operation -----------------------------------
+	// 	_, err = DB.Exec(
+	// 		`INSERT INTO weather (lon, lat, temperature, presure, timestamp)
+    //  VALUES (?, ?, ?, ?, ?)`,
+	// 		wf.Lon, wf.Lat, wf.Temperature, wf.Pressure, wf.Timestamp,
+	// 	)
+	// 	if err != nil {
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 		return
+	// 	}
+		
+
+		// ----------------- Send it to the kafka server as producer ---------------------
+
+		msgBytes, err := json.Marshal(wf)
+		if err != nil{
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
 		}
+
+
+
+
+
+
+
+
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
